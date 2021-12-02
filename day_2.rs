@@ -10,35 +10,39 @@ struct Command {
 struct Position {
     x: i32,
     y: i32,
+    aim: i32,
     debug: bool,
 }
 
 impl Position {
     fn init(debug: bool) -> Position {
-        Position { x: 0, y: 0, debug }
+        Position { x: 0, y: 0, aim: 0, debug }
     }
 
     fn forward(&mut self, arg1: i32) {
         self.x += arg1;
+        let depth_increase = self.aim * arg1;
+        self.y += depth_increase;
 
         if self.debug {
-            println!("forward {} => {}", arg1, self.x)
+            println!("forward increases x by {} => {}", arg1, self.x);
+            println!("forward increases y by {} => {}", depth_increase, self.y)
         }
     }
 
     fn down(&mut self, arg1: i32) {
-        self.y += arg1;
+        self.aim += arg1;
 
         if self.debug {
-            println!("down {} => {}", arg1, self.y)
+            println!("down increases aim by {} => {}", arg1, self.aim)
         }
     }
 
     fn up(&mut self, arg1: i32) {
-        self.y -= arg1;
+        self.aim -= arg1;
 
         if self.debug {
-            println!("up {} => {}", arg1, self.y)
+            println!("up decreases aim by {} => {}", arg1, self.aim)
         }
     }
 }
