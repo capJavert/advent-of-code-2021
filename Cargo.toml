@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 reqwest = { version = "0.11.7", features = ["blocking"] }
-regex = { regex = "1.5.4" }
+regex = { version = "1.5.4" }
+geo = { version = "0.18.0" }
 
 [[bin]]
 name = "day_1"
@@ -24,3 +25,7 @@ path = "day_3.rs"
 [[bin]]
 name = "day_4"
 path = "day_4.rs"
+
+[[bin]]
+name = "day_5"
+path = "day_5.rs"
