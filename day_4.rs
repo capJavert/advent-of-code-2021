@@ -1,6 +1,6 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Field {
-    number: i32,
+    number: usize,
     is_drawn: bool,
 }
 
@@ -18,19 +18,22 @@ fn main() -> Result<(), reqwest::Error> {
 
     let mut lines: Vec<&str> = input.lines().collect();
 
-    let numbers: Vec<i32> = lines
+    let mut numbers: Vec<usize> = lines
         .remove(0)
         .split(",")
         .map(|s| s.parse().expect("Not a number"))
         .collect();
 
+    let mut board_id = 0;
+
     let mut boards: Vec<Vec<Vec<Field>>> = lines.iter().fold(Vec::new(), |mut acc, line| {
         if line.trim().len() == 0 {
             acc.push(Vec::new());
+            board_id += 1;
 
             acc
         } else {
-            let line_number: Vec<i32> =
+            let line_number: Vec<usize> =
                 line.trim()
                     .split(" ")
                     .fold(Vec::new(), |mut acc, s| match s.trim().parse() {
@@ -59,7 +62,12 @@ fn main() -> Result<(), reqwest::Error> {
         }
     });
 
-    for number in numbers.into_iter() {
+    let mut board_wins: Vec<usize> = Vec::new();
+    let mut last_number = 0;
+
+    while numbers.len() > 0 && board_wins.len() < boards.len() {
+        let number = numbers.remove(0);
+
         boards = boards
             .into_iter()
             .map(|board| {
@@ -80,63 +88,62 @@ fn main() -> Result<(), reqwest::Error> {
             })
             .collect();
 
-        let mut break_it = false;
+        for (index, board) in boards.to_vec().iter().enumerate() {
+            if board_wins.contains(&index) {
+                continue;
+            }
 
-        for (index, board) in boards.iter().enumerate() {
-            for (y, line) in board.iter().enumerate() {
-                let mut is_win = true;
+            let mut is_win = true;
 
-                for field in line.iter() {
-                    if field.is_drawn == false {
+            for y in 0..board[0].len() {
+                is_win = true;
+
+                for x in 0..board[y].len() {
+                    if board[y][x].is_drawn == false {
                         is_win = false;
                     }
                 }
 
                 if is_win {
-                    break_it = true;
-
                     break;
                 }
+            }
 
-                is_win = true;
-
+            if !is_win {
                 for y in 0..board[0].len() {
+                    is_win = true;
                     for x in 0..board[y].len() {
                         if board[x][y].is_drawn == false {
                             is_win = false;
                         }
                     }
-                }
 
-                if is_win {
-                    println!("{} {:?}", index, board[y]);
-                    break_it = true;
-
-                    break;
-                }
-            }
-
-            if break_it {
-                let mut sum = 0;
-
-                for y in 0..board[0].len() {
-                    for x in 0..board[y].len() {
-                        if board[x][y].is_drawn == false {
-                            sum += board[x][y].number;
-                        }
+                    if is_win {
+                        break;
                     }
                 }
+            }
 
-                println!("{}", sum * number);
-
-                break;
+            if is_win {
+                board_wins.push(index);
             }
         }
 
-        if break_it {
-            break;
+        last_number = number;
+    }
+
+    let mut sum = 0;
+    let board = boards.get(board_wins.pop().unwrap()).unwrap();
+
+    for y in 0..board[0].len() {
+        for x in 0..board[y].len() {
+            if board[x][y].is_drawn == false {
+                sum += board[x][y].number;
+            }
         }
     }
+
+    println!("{}", sum * last_number);
 
     Ok(())
 }
