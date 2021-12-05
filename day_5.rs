@@ -92,11 +92,10 @@ fn main() -> Result<(), reqwest::Error> {
 
     for (_, vent) in vents.iter().enumerate() {
         if vent.is_diagonal() {
-            continue;
-        }
+            let mut x = vent.x1;
+            let mut y = vent.y1;
 
-        for x in vent.to_x_range() {
-            for y in vent.to_y_range() {
+            loop {
                 let mut key = String::from("x");
                 key.push_str(&x.to_string());
                 key.push_str("y");
@@ -108,6 +107,37 @@ fn main() -> Result<(), reqwest::Error> {
                     intersections: 0,
                 });
                 point.cover();
+
+                if x == vent.x2 && y == vent.y2 {
+                    break;
+                }
+
+                if x < vent.x2 {
+                    x += 1;
+                } else {
+                    x -= 1;
+                }
+
+                if y < vent.y2 {
+                    y += 1;
+                } else {
+                    y -= 1;
+                }
+            }
+        } else {
+            for x in vent.to_x_range() {
+                for y in vent.to_y_range() {
+                    let mut key = String::from("x");
+                    key.push_str(&x.to_string());
+                    key.push_str("y");
+                    key.push_str(&y.to_string());
+                    let point = diagram.entry(key).or_insert(Point {
+                        x,
+                        y,
+                        intersections: 0,
+                    });
+                    point.cover();
+                }
             }
         }
     }
