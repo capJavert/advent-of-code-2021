@@ -28,9 +28,9 @@ fn main() -> Result<(), reqwest::Error> {
         })
         .collect();
 
-    let mut flashes_count = 0;
+    let mut step = 1;
 
-    for _ in 0..100 {
+    loop {
         octopuses = octopuses
             .into_iter()
             .map(|row| row.into_iter().map(|octopus| octopus + 1).collect())
@@ -53,7 +53,6 @@ fn main() -> Result<(), reqwest::Error> {
                     if *octopus > 9 {
                         flashes.insert((y, x), true);
                         did_flash = true;
-                        flashes_count += 1;
 
                         let adjacent_octopuses =
                             DIRECTIONS.iter().fold(vec![], |mut acc, direction| {
@@ -112,9 +111,18 @@ fn main() -> Result<(), reqwest::Error> {
                     .collect()
             })
             .collect();
-    }
 
-    println!("{}", flashes_count);
+        let did_flash_simultaneously = octopuses
+            .iter()
+            .all(|row| row.iter().all(|octopus| *octopus == 0));
+
+        if did_flash_simultaneously {
+            println!("{}", step);
+            break;
+        }
+
+        step += 1;
+    }
 
     Ok(())
 }
