@@ -5,21 +5,38 @@ fn find_path(
     path: &mut Vec<String>,
     paths: &mut Vec<Vec<String>>,
     connections: &HashMap<String, Vec<String>>,
+    did_use_shortcut: bool,
 ) {
     path.push(String::from(next));
 
     if next == "end" {
         paths.push(path.to_vec());
-    }
+        ()
+    } else {
+        let next_paths = connections.get(next).unwrap();
 
-    let next_paths = connections.get(next).unwrap();
+        for next_path in next_paths {
+            let mut will_use_shortcut = did_use_shortcut;
 
-    for next_path in next_paths {
-        if &next_path.to_uppercase() != next_path && path.contains(next_path) {
-            continue;
+            if next_path == &String::from("start") && path.contains(&String::from("start")) {
+                continue;
+            }
+            if &next_path.to_uppercase() != next_path && path.contains(next_path) {
+                if did_use_shortcut {
+                    continue;
+                } else {
+                    will_use_shortcut = true;
+                }
+            }
+
+            find_path(
+                next_path,
+                &mut path.to_vec(),
+                paths,
+                connections,
+                will_use_shortcut,
+            );
         }
-
-        find_path(next_path, &mut path.to_vec(), paths, connections);
     }
 }
 
@@ -66,6 +83,7 @@ fn main() -> Result<(), reqwest::Error> {
         &mut vec![],
         &mut paths,
         &connections,
+        false,
     );
 
     println!("{:?}", paths.len());
