@@ -81,11 +81,23 @@ fn main() -> Result<(), reqwest::Error> {
                 acc
             },
         );
-
-        break;
     }
 
-    println!("{}", dots.len());
+    for y in 0..6 {
+        let mut line = String::from("");
+        for x in 0..50 {
+            match dots.get(&(x, y)) {
+                Some(_) => {
+                    line += " # ";
+                }
+                None => {
+                    line += " . ";
+                }
+            };
+        }
+
+        println!("{}", line);
+    }
 
     Ok(())
 }
