@@ -22,61 +22,57 @@ fn main() -> Result<(), reqwest::Error> {
         }
     }
 
-    for _ in 1..11 {
-        let template_pairs =
-            template
-                .iter()
-                .enumerate()
-                .step_by(2)
-                .fold(vec![], |mut acc, (index, item)| {
-                    if index > 0 {
-                        match template.get(index - 1) {
-                            Some(prev_item) => {
-                                acc.push(String::from(prev_item) + item);
-                            }
-                            None => (),
-                        };
-                    }
+    let mut pair_counts: HashMap<String, usize> = HashMap::new();
+    for (index, item) in template.iter().enumerate().step_by(2) {
+        if index > 0 {
+            match template.get(index - 1) {
+                Some(prev_item) => {
+                    let pair = String::from(prev_item) + item;
 
-                    match template.get(index + 1) {
-                        Some(next_item) => {
-                            acc.push(String::from(item) + next_item);
-                        }
-                        None => (),
-                    };
-
-                    acc
-                });
-
-        let mut insertions = vec![];
-
-        for pair in pairs.iter() {
-            for (index, template_pair) in template_pairs.iter().enumerate() {
-                if template_pair == &pair.0 {
-                    insertions.push((index + 1, pair.1.to_string()));
+                    *pair_counts.entry(pair).or_insert(0) += 1;
                 }
+                None => (),
+            };
+        }
+
+        match template.get(index + 1) {
+            Some(next_item) => {
+                let pair = String::from(item) + next_item;
+
+                *pair_counts.entry(pair).or_insert(0) += 1;
             }
-        }
-
-        insertions.sort_by(|a, b| b.0.cmp(&a.0));
-
-        for (index, item) in insertions {
-            template.insert(index, item);
-        }
+            None => (),
+        };
     }
 
-    let counts =
-        template
-            .into_iter()
-            .fold(HashMap::new(), |mut acc: HashMap<String, usize>, item| {
-                *acc.entry(item).or_insert(0) += 1;
+    let mut item_counts: HashMap<String, usize> = HashMap::new();
+    for item in template.iter() {
+        *item_counts.entry(item.to_string()).or_insert(0) += 1;
+    }
 
-                acc
-            });
+    for _ in 1..41 {
+        let mut new_pair_counts = pair_counts.clone();
+
+        for pair in pairs.iter() {
+            let pair_count = pair_counts.entry(pair.0.to_string()).or_insert(0);
+            *item_counts.entry(pair.1.to_string()).or_insert(0) += *pair_count;
+
+            let split: Vec<String> = pair.0.chars().map(|c| c.to_string()).collect();
+            *new_pair_counts.entry(pair.0.to_string()).or_insert(0) -= *pair_count;
+
+            let prev_pair = split[0].to_string() + &pair.1;
+            *new_pair_counts.entry(prev_pair).or_insert(0) += *pair_count;
+
+            let next_pair = pair.1.to_string() + &split[1];
+            *new_pair_counts.entry(next_pair).or_insert(0) += *pair_count;
+        }
+
+        pair_counts = new_pair_counts;
+    }
 
     println!(
         "{}",
-        counts.values().max().unwrap() - counts.values().min().unwrap()
+        item_counts.values().max().unwrap() - item_counts.values().min().unwrap()
     );
 
     Ok(())
