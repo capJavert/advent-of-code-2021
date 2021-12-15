@@ -46,15 +46,42 @@ impl PartialOrd for State {
 fn main() -> Result<(), reqwest::Error> {
     let input = reqwest::blocking::get("https://pastebin.com/raw/w3L6EjTC")?.text()?;
 
-    let rows: Vec<Vec<usize>> = input
-        .lines()
-        .map(|line| {
-            line.trim()
+    let mut rows: Vec<Vec<usize>> = vec![];
+
+    for step in 0..5 {
+        for line in input.lines() {
+            let row: Vec<usize> = line
+                .trim()
                 .chars()
-                .map(|c| c.to_string().parse().expect("parse failed"))
-                .collect()
-        })
-        .collect();
+                .map(|c| {
+                    let cell: usize = c.to_string().parse().expect("parse failed");
+                    let mut incremented_cell = cell + step;
+
+                    if incremented_cell > 9 {
+                        incremented_cell -= 9;
+                    }
+
+                    incremented_cell
+                })
+                .collect();
+
+            rows.push(row);
+        }
+    }
+
+    for (y, row) in rows.to_vec().iter().enumerate() {
+        for step in 1..5 {
+            for cell in row {
+                let mut incremented_cell = cell + step;
+
+                if incremented_cell > 9 {
+                    incremented_cell -= 9;
+                }
+
+                rows[y].push(incremented_cell)
+            }
+        }
+    }
 
     let mut grid: HashMap<(usize, usize), usize> = HashMap::new();
 
