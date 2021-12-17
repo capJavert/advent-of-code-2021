@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
 fn main() -> Result<(), reqwest::Error> {
     let input = "target area: x=217..240, y=-126..-69";
@@ -37,16 +38,15 @@ fn main() -> Result<(), reqwest::Error> {
             .expect("parse failed"),
     );
 
-    let mut max_y = -9999999999;
+    let mut velocities = HashMap::new();
 
     let x_range = x_target.0..x_target.1 + 1;
-    let y_range = y_target.0..y_target.1 - 1;
+    let y_range = y_target.0..y_target.1 + 1;
 
     for x in 0..1000 {
         for y in -1000..1000 {
             let mut position: (isize, isize) = (0, 0);
             let mut velocity: (isize, isize) = (x, y);
-            let mut max_temp_y = -9999999999;
 
             loop {
                 position.0 += velocity.0;
@@ -63,20 +63,14 @@ fn main() -> Result<(), reqwest::Error> {
                     break;
                 }
 
-                if position.1 > max_temp_y {
-                    max_temp_y = position.1;
-                }
-
                 if x_range.contains(&position.0) && y_range.contains(&position.1) {
-                    if max_temp_y > max_y {
-                        max_y = max_temp_y;
-                    }
+                    velocities.insert((x, y), true);
                 }
             }
         }
     }
 
-    println!("{}", max_y);
+    println!("{}", velocities.len());
 
     Ok(())
 }
