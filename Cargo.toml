@@ -9,6 +9,7 @@ edition = "2021"
 reqwest = { version = "0.11.7", features = ["blocking"] }
 regex = { version = "1.5.4" }
 itertools = { version = "0.10.3" }
+json = { version = "0.12.4" }
 
 [[bin]]
 name = "day_1"

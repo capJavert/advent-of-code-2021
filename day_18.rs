@@ -20,6 +20,21 @@ fn check_explode(number: &str) -> bool {
     level >= 5
 }
 
+fn calc_magnitude(number: &json::JsonValue) -> u64 {
+    let a = if number[0].len() == 0 {
+        number[0].as_fixed_point_u64(0).unwrap()
+    } else {
+        calc_magnitude(&number[0])
+    };
+    let b = if number[1].len() == 0 {
+        number[1].as_fixed_point_u64(0).unwrap()
+    } else {
+        calc_magnitude(&number[1])
+    };
+
+    3 * a + 2 * b
+}
+
 fn main() -> Result<(), reqwest::Error> {
     let input = reqwest::blocking::get("https://pastebin.com/raw/Rs1FL7ux")?.text()?;
 
@@ -27,11 +42,15 @@ fn main() -> Result<(), reqwest::Error> {
     let number_regex = Regex::new(r"[0-9]{1,}").unwrap();
 
     let numbers: Vec<&str> = input.lines().map(|line| line.trim()).collect();
+    let mut largest_magnitude = 0;
 
-    let result = numbers[1..]
-        .iter()
-        .fold(numbers[0].to_string(), |acc, item| {
-            let mut number = String::from("[") + &acc + "," + item + "]";
+    for number1 in numbers.iter() {
+        for number2 in numbers.iter() {
+            if number1 == number2 {
+                continue;
+            }
+
+            let mut number = String::from("[") + &number1 + "," + number2 + "]";
 
             loop {
                 let is_explode = check_explode(&number);
@@ -183,12 +202,19 @@ fn main() -> Result<(), reqwest::Error> {
 
                     number = new_number
                 } else {
-                    break number.to_string();
+                    break;
                 }
             }
-        });
 
-    println!("{}", result);
+            let magnitude = calc_magnitude(&json::parse(&number).unwrap());
+
+            if largest_magnitude < magnitude {
+                largest_magnitude = magnitude;
+            }
+        }
+    }
+
+    println!("{}", largest_magnitude);
 
     Ok(())
 }
