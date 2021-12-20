@@ -39,7 +39,7 @@ fn main() -> Result<(), reqwest::Error> {
         }
     }
 
-    for step in 1..3 {
+    for step in 1..51 {
         let mut temp_image = image.clone();
 
         for pixel in image.clone().keys() {
