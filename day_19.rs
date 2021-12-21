@@ -134,7 +134,21 @@ fn main() -> Result<(), reqwest::Error> {
         }
     }
 
-    println!("{}", unique_beacons.len());
+    let mut max_distance = 0;
+
+    for (beacon1, ..) in adjusted_scanners.values() {
+        for (beacon2, ..) in adjusted_scanners.values() {
+            let distance = (beacon1.0 - beacon2.0).abs()
+                + (beacon1.1 - beacon2.1).abs()
+                + (beacon1.2 - beacon2.2).abs();
+
+            if distance > max_distance {
+                max_distance = distance;
+            }
+        }
+    }
+
+    println!("{}", max_distance);
 
     Ok(())
 }
