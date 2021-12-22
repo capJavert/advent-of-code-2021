@@ -1,6 +1,4 @@
 use regex::Regex;
-use std::collections::HashMap;
-use std::ops::RangeInclusive;
 
 #[derive(Debug, Copy, Clone)]
 struct Cube {
@@ -10,13 +8,47 @@ struct Cube {
 }
 
 impl Cube {
-    fn contains(&self, cube: &Cube) -> bool {
-        !(self.x.1 < cube.x.0
-            || self.x.0 > cube.x.1
-            || self.y.1 < cube.y.0
-            || self.y.0 > cube.y.1
-            || self.z.1 < cube.z.0
-            || self.z.0 > cube.z.1)
+    fn size(&self) -> isize {
+        ((self.x.0 - self.x.1).abs() + 1)
+            * ((self.y.0 - self.y.1).abs() + 1)
+            * ((self.z.0 - self.z.1).abs() + 1)
+    }
+
+    fn intersection(&self, cube: &Cube) -> Cube {
+        if self.is_intersecting(cube) {
+            Cube {
+                x: (
+                    isize::max(self.x.0, cube.x.0),
+                    isize::min(self.x.1, cube.x.1),
+                ),
+                y: (
+                    isize::max(self.y.0, cube.y.0),
+                    isize::min(self.y.1, cube.y.1),
+                ),
+                z: (
+                    isize::max(self.z.0, cube.z.0),
+                    isize::min(self.z.1, cube.z.1),
+                ),
+            }
+        } else {
+            Cube {
+                x: (0, 0),
+                y: (0, 0),
+                z: (0, 0),
+            }
+        }
+    }
+
+    fn is_intersecting(&self, cube: &Cube) -> bool {
+        if self.x.1 < cube.x.0 || self.x.0 > cube.x.1 {
+            false
+        } else if self.y.1 < cube.y.0 || self.y.0 > cube.y.1 {
+            false
+        } else if self.z.1 < cube.z.0 || self.z.0 > cube.z.1 {
+            false
+        } else {
+            true
+        }
     }
 }
 
@@ -68,35 +100,38 @@ fn main() -> Result<(), reqwest::Error> {
         })
         .collect();
 
-    let mut cubes = HashMap::new();
-
-    let valid_area = Cube {
-        x: (-50, 50),
-        y: (-50, 50),
-        z: (-50, 50),
-    };
+    let mut cubes: Vec<Step> = vec![];
 
     for step in steps.iter() {
-        if !valid_area.contains(&step.cube) {
-            continue;
+        let Step { cube, .. } = step;
+        let mut intersections = vec![];
+
+        for step2 in cubes.iter() {
+            let Step { cube: cube2, .. } = step2;
+
+            // to account for intersection we switch
+            // the state of the step so that "on" intersection
+            // becomse "off" step (because it cuts the part of the
+            // original step cube)
+            if cube.is_intersecting(cube2) {
+                intersections.push(Step {
+                    state: !step2.state,
+                    cube: cube.intersection(cube2),
+                });
+            }
         }
 
-        let Step { cube, .. } = step;
+        cubes.append(&mut intersections);
 
-        for x in RangeInclusive::new(cube.x.0, cube.x.1) {
-            for y in RangeInclusive::new(cube.y.0, cube.y.1) {
-                for z in RangeInclusive::new(cube.z.0, cube.z.1) {
-                    cubes.insert((x, y, z), step.state);
-                }
-            }
+        if step.state {
+            cubes.push(step.clone());
         }
     }
 
     println!(
         "{}",
-        cubes
-            .values()
-            .fold(0, |acc, item| if *item { acc + 1 } else { acc })
+        cubes.iter().fold(0, |acc, item| acc
+            + item.cube.size() * if item.state { 1 } else { -1 })
     );
 
     Ok(())
