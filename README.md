@@ -10,3 +10,6 @@
 ### Update #8: Backtracked day 19.. shout-out to [this solution](https://github.com/joeyemerson/aoc/blob/main/2021/19-beacon-scanner/solution.js) for helping me understand the basic logic. Note, those 3d rotations are hard.. final week, let's move on!!!
 ### Update #9: Day 21 featured a really cool board game.. solved part 1 quickly but part 2 to involved parallel universes so I pulled from this [parallel repo for hint..](https://github.com/Lacuno/aoc-2021/blob/master/aoc21.js#L75-L84) 😆
 ### Update #10: Day 22.. Visualization is the king!! 👑
+### Update #11: Day 23.. Made a terminal game to solve both parts by hand.. took some time but it was really fun to code.. also checked out some rust based terminal/text helper cargos.
+![image](https://user-images.githubusercontent.com/9803078/147295978-2f3fc743-7f95-4c64-839b-7a098ecb3384.png)
+
