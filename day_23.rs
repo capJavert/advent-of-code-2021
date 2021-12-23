@@ -52,10 +52,10 @@ fn is_amphipod_in_place(position: (usize, usize), amphipod: char) -> bool {
     let (x, y) = position;
 
     match amphipod {
-        'A' => [(3, 2), (3, 3)].contains(&(x, y)),
-        'B' => [(5, 2), (5, 3)].contains(&(x, y)),
-        'C' => [(7, 2), (7, 3)].contains(&(x, y)),
-        'D' => [(9, 2), (9, 3)].contains(&(x, y)),
+        'A' => [(3, 2), (3, 3), (3, 4), (3, 5)].contains(&(x, y)),
+        'B' => [(5, 2), (5, 3), (5, 4), (5, 5)].contains(&(x, y)),
+        'C' => [(7, 2), (7, 3), (7, 4), (7, 5)].contains(&(x, y)),
+        'D' => [(9, 2), (9, 3), (9, 4), (9, 5)].contains(&(x, y)),
         _ => panic!("invalid amphipod"),
     }
 }
@@ -70,12 +70,20 @@ fn is_amphipod_in_room(position: (usize, usize)) -> bool {
     [
         (3, 2),
         (3, 3),
+        (3, 4),
+        (3, 5),
         (5, 2),
         (5, 3),
+        (5, 4),
+        (5, 5),
         (7, 2),
         (7, 3),
+        (7, 4),
+        (7, 5),
         (9, 2),
         (9, 3),
+        (9, 4),
+        (9, 5),
     ]
     .contains(&position)
 }
@@ -96,11 +104,18 @@ fn did_win(amphipods: &HashMap<(usize, usize), char>) -> bool {
 
 fn main() -> Result<(), reqwest::Error> {
     let input = reqwest::blocking::get("https://pastebin.com/raw/pmTGCZr2")?.text()?;
+    let folded_input = ["  #D#C#B#A#  ", "  #D#B#A#C#  "];
+
+    let mut lines: Vec<&str> = input.lines().collect();
+
+    for (index, folder_line) in folded_input.iter().enumerate() {
+        lines.insert(3 + index, folder_line)
+    }
 
     let mut area = HashMap::new();
     let mut amphipods = HashMap::new();
 
-    for (y, line) in input.lines().enumerate() {
+    for (y, line) in lines.iter().enumerate() {
         for (x, field) in line.chars().enumerate() {
             match field {
                 '#' => area.insert((x, y), field),
@@ -117,7 +132,7 @@ fn main() -> Result<(), reqwest::Error> {
 
     let mut selected_amphipod = *amphipods.keys().next().unwrap();
     let mut score = 0;
-    let mut last_state = (area.clone(), amphipods.clone(), score, selected_amphipod);
+    let mut state_history = vec![(area.clone(), amphipods.clone(), score, selected_amphipod)];
     let mut error_message = "";
 
     loop {
@@ -125,7 +140,7 @@ fn main() -> Result<(), reqwest::Error> {
 
         let did_win = did_win(&amphipods);
 
-        for y in 0..5 {
+        for y in 0..7 {
             for x in 0..13 {
                 match area.get(&(x, y)) {
                     Some(field) => print!("{}", field.to_string()),
@@ -174,12 +189,21 @@ fn main() -> Result<(), reqwest::Error> {
 
         match selection.to_uppercase().as_str().trim() {
             "" => {
+                let last_state = state_history.last().clone().unwrap();
+                let last_state = (
+                    last_state.0.clone(),
+                    last_state.1.clone(),
+                    last_state.2,
+                    last_state.3,
+                );
+                let did_move = score != last_state.2;
+
                 if [(3, 1), (5, 1), (7, 1), (9, 1)].contains(&selected_amphipod) {
                     error_message =
                         "Amphipods will never stop on the space immediately outside any room"
                 }
 
-                if score != last_state.2
+                if did_move
                     && is_amphipod_in_room(selected_amphipod)
                     && !is_amphipod_in_place(selected_amphipod, amphipods[&selected_amphipod])
                 {
@@ -187,7 +211,7 @@ fn main() -> Result<(), reqwest::Error> {
                         "Amphipods will never move from the hallway into a room unless that room is their destination room and that room contains no amphipods which do not also have that room as their own destination."
                 }
 
-                if score != last_state.2
+                if did_move
                     && is_amphipod_in_hallway(last_state.3)
                     && is_amphipod_in_hallway(selected_amphipod)
                 {
@@ -202,7 +226,14 @@ fn main() -> Result<(), reqwest::Error> {
                 let is_valid_move = error_message.len() == 0;
 
                 if is_valid_move {
-                    last_state = (area.clone(), amphipods.clone(), score, selected_amphipod);
+                    if did_move {
+                        state_history.push((
+                            area.clone(),
+                            amphipods.clone(),
+                            score,
+                            selected_amphipod,
+                        ));
+                    }
                 } else {
                     area = last_state.0.clone();
                     amphipods = last_state.1.clone();
@@ -216,7 +247,7 @@ fn main() -> Result<(), reqwest::Error> {
                     .unwrap()
                     .1;
 
-                last_state.3 = selected_amphipod
+                state_history.last_mut().unwrap().3 = selected_amphipod;
             }
             "W" => {
                 selected_amphipod = move_amphipod(
@@ -255,10 +286,22 @@ fn main() -> Result<(), reqwest::Error> {
                 );
             }
             "U" => {
+                let last_state = if state_history.len() > 1 {
+                    state_history.pop().unwrap()
+                } else {
+                    let last_state = state_history.last().clone().unwrap();
+
+                    (
+                        last_state.0.clone(),
+                        last_state.1.clone(),
+                        last_state.2,
+                        last_state.3,
+                    )
+                };
                 area = last_state.0.clone();
                 amphipods = last_state.1.clone();
                 score = last_state.2;
-                selected_amphipod = last_state.3
+                selected_amphipod = *amphipods.keys().next().unwrap();
             }
             _ => (),
         }
