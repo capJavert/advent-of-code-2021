@@ -12,4 +12,11 @@
 ### Update #10: Day 22.. Visualization is the king!! 👑
 ### Update #11: Day 23.. Made a terminal game to solve both parts by hand.. took some time but it was really fun to code.. also checked out some rust based terminal/text helper cargos.
 ![image](https://user-images.githubusercontent.com/9803078/147295978-2f3fc743-7f95-4c64-839b-7a098ecb3384.png)
+### Update #12: Managed to solve everything except day 24 but had wonderful Xmas Eve with the family 😊 .. tried to solve it after on Xmas day but after numerous tries I am soaked for this year. It was one of my best years so far and also considering I done it in Rust which I never did before I consider it a win for new knowledge 💪 .. capJavert will return next year... 
 
+### Some notes for next year:
+* find better way of visualizing puzzles based in the 3D space
+* use pen and paper more
+* think about ranges and constraints for specific inputs for optimizing runtimes
+
+### Merry Xmas! 🎄🎊
